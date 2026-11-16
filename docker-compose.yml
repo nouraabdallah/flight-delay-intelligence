@@ -1,3 +1,4 @@
+
 services:
   postgres:
     image: postgres:16
@@ -16,6 +17,7 @@ services:
       timeout: 5s
       retries: 10
     networks: [flight_net]
+
   pgadmin:
     image: dpage/pgadmin4:8
     restart: unless-stopped
@@ -30,9 +32,25 @@ services:
       postgres:
         condition: service_healthy
     networks: [flight_net]
+
+  ingestion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    working_dir: /app
+    environment:
+      SOURCE_FILE: /app/data/source/894233989_32020_056_airline_delay_causes.csv
+      RAW_DIR: /app/data/raw
+    volumes:
+      - ./data/source:/app/data/source:ro
+      - ./data/raw:/app/data/raw
+    networks:
+      - flight_net
+
 volumes:
   postgres_data:
   pgadmin_data:
+
 networks:
   flight_net:
     driver: bridge
